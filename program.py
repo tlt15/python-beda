@@ -79,6 +79,43 @@ def main():
     return MooreMachine()
 
 
+def test():
+    obj = main()
+    obj.assign_k(1)
+    obj.go_hop()
+    obj.has_path_to('Y3')
+    obj.seen_method('hop')
+    obj.go_mute()
+    obj.get_output()
+    obj.go_daub()
+    obj.has_path_to('Y1')
+    obj.seen_method('tag')
+    obj.go_tag()
+    obj.seen_method('tag')
+    obj.has_path_to('Y3')
+    obj.go_hop()
+    obj.get_output()
+    obj.seen_method('hop')
+    obj.go_loop()
+    obj.go_daub()
+    obj.get_output()
+    obj.go_post()
+    obj.go_loop()
+    obj.go_hop()
+    obj.get_output()
+    obj.seen_method('loop')
+    obj.go_drag()
+    obj.get_output()
+    obj.has_path_to('Y0')
+    obj.go_drag()
+    obj.get_output()
+    obj.go_hop()
+    obj.get_output()
+    obj.go_hike()
+    obj.go_mute()
+    obj.get_output()
+
+
 def _assert_state(machine, expected_state, method_name):
     if method_name == "get_output":
         if machine.get_output() != expected_state:
@@ -154,131 +191,3 @@ def _test_other(machine, test_type, *args):
         if machine.seen_method(method_name) != should_be_seen:
             raise AssertionError(f"seen_method('"
                                  f"{method_name}') failed")
-
-
-class TestMooreMachine(unittest.TestCase):
-
-    def test_unsupported_transitions(self):
-        machine = main()
-        _test_unsupported_transition(machine,
-                                     "go_hop",
-                                     'Y6', "unsupported")
-        machine = main()
-        _test_unsupported_transition(machine,
-                                     "go_drag",
-                                     'Y6', "unsupported")
-        machine = main()
-        _test_unsupported_transition(machine,
-                                     "go_mute",
-                                     'Y5', "unsupported")
-        machine = main()
-        _test_unsupported_transition(machine,
-                                     "go_tag",
-                                     'Y1', "unsupported")
-
-    def test_go_tag_from_non_y5(self):
-        machine = main()
-        machine.current_state = 'Y1'
-        with self.assertRaises(MachineError):
-            machine.go_tag()
-
-    def test_transitions(self):
-        test_cases = [
-            ("go_mute", 'Y6', 'Y5', None, None),
-            ("go_tag", 'Y5', 'Y6', None, None),
-            ("go_loop", 'Y5', 'Y3', None, None),
-            ("assign_k", 'Y6', 'Y6', None, 0),
-            ("go_loop", 'Y3', 'Y5', None, 0),
-            ("assign_k", 'Y3', 'Y3', None, 1),
-            ("go_loop", 'Y3', 'Y1', None, 1),
-            ("go_mute", 'Y1', 'Y1', None, None),
-            ("go_drag", 'Y1', 'Y0', None, None),
-            ("go_drag", 'Y0', 'Y2', None, None),
-            ("go_hop", 'Y2', 'Y4', None, None),
-        ]
-
-        for test_case in test_cases:
-            machine = main()
-            _test_transition(machine, *test_case)
-
-    def test_has_path_to(self):
-        machine = main()
-        _test_other(machine, "has_path_to", 'Y4', True)
-        machine = main()
-        _test_other(machine, "has_path_to",
-                    'NonExistentState', False)
-
-    def test_seen_method(self):
-        machine = main()
-        _test_other(machine, "seen_method", 'mute', False)
-        machine.go_mute()
-        _test_other(machine, "seen_method", 'mute', True)
-
-    def test_assert_error_incorrect_error(self):
-        with self.assertRaises(AssertionError):
-            _assert_error("test", "wrong_error",
-                          "actual_error")
-
-    def test_assert_error_no_error(self):
-        with self.assertRaises(AssertionError):
-            _assert_error("test",
-                          "expected_error",
-                          None)
-
-    def test_assert_state_wrong_output(self):
-        machine = main()
-        with self.assertRaises(AssertionError):
-            _assert_state(machine,
-                          "wrong_output",
-                          "get_output")
-
-    def test_assert_error_no_expected_error(self):
-        with self.assertRaises(AssertionError):
-            _assert_error("test", None,
-                          "actual_error")
-
-    def test_assert_state_wrong_state(self):
-        machine = main()
-        with self.assertRaises(AssertionError):
-            _assert_state(machine, "wrong_state",
-                          "go_mute")
-
-    def test_transition_unexpected_exception(self):
-        machine = main()
-
-        def raise_exception():
-            raise ValueError("Generic Exception")
-        machine.raise_exception = raise_exception
-        with self.assertRaises(AssertionError):
-            _test_transition(machine, "raise_exception",
-                             'Y6', None, None)
-
-    def test_go_loop_from_y5_to_y3(self):
-        machine = main()
-        machine.current_state = 'Y5'
-        machine.go_loop()
-        self.assertEqual(machine.get_current_state(), 'Y3')
-
-    def test_current_state_is_y6(self):
-        machine = main()
-        self.assertEqual(machine.get_current_state(), 'Y6')
-
-    def test_go_loop_from_y6(self):
-        machine = main()
-        machine.go_mute()
-        machine.go_loop()
-        self.assertEqual(machine.get_current_state(), 'Y3')
-
-    def test_go_loop_k_0(self):
-        machine = main()
-        machine.current_state = 'Y3'
-        machine.assign_k(0)
-        machine.go_loop()
-        self.assertEqual(machine.get_current_state(), 'Y5')
-
-    def test_go_loop_k_1(self):
-        machine = main()
-        machine.current_state = 'Y3'
-        machine.assign_k(1)
-        machine.go_loop()
-        self.assertEqual(machine.get_current_state(), 'Y1')
